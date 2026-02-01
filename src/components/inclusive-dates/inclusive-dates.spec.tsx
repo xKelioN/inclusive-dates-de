@@ -7,9 +7,6 @@ function getDatePicker(page: SpecPage): HTMLInclusiveDatesElement {
 function getInput(page: SpecPage): HTMLInputElement {
   return page.root.querySelector<HTMLInputElement>(".inclusive-dates__input");
 }
-function getLabel(page: SpecPage): HTMLLabelElement {
-  return page.root.querySelector<HTMLLabelElement>(".inclusive-dates__label");
-}
 function getQuickButtons(page: SpecPage): NodeListOf<HTMLButtonElement> {
   return page.root.querySelectorAll<HTMLButtonElement>(
     ".inclusive-dates__quick-button"
@@ -37,10 +34,7 @@ describe("inclusive-dates", () => {
       language: "en"
     });
     const input = getInput(page);
-    const label = getLabel(page);
     expect(input.getAttribute("id")).not.toContain("undefined");
-    expect(label.getAttribute("htmlFor")).not.toContain("undefined");
-    expect(input.getAttribute("id")).toEqual(label.getAttribute("htmlFor"));
     expect(consoleSpy).not.toHaveBeenCalled();
     consoleSpy.mockClear();
 

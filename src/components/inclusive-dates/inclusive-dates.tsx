@@ -111,7 +111,6 @@ export class InclusiveDates {
   @Prop() showClearButton?: boolean = true;
   // Show or hide the today button
   @Prop() showTodayButton?: boolean = true;
-  @Prop() showLabel?: boolean = true;
   // Enable or disable input field formatting for accepted dates (eg. "Tuesday May 2, 2021" instead of "2021-05-02")
   @Prop({ attribute: "input-should-format" }) formatInputOnAccept?: boolean =
     true;
@@ -512,15 +511,6 @@ export class InclusiveDates {
   render() {
     return (
       <Host>
-        {this.showLabel && (
-          <label
-            htmlFor={this.id ? `${this.id}-input` : undefined}
-            class={this.getClassName("label")}
-          >
-            {this.label}
-          </label>
-        )}
-        <br />
         <div class={this.getClassName("input-container")}>
           <input
             disabled={this.disabledState}
