@@ -144,9 +144,15 @@ export class InclusiveDates {
   private inputRef?: HTMLInputElement;
   private calendarButtonRef?: HTMLButtonElement;
   private pickerRef?: HTMLInclusiveDatesCalendarElement;
-  private chronoSupportedLocale = ["en", "ja", "fr", "nl", "ru", "pt"].includes(
-    this.locale.slice(0, 2)
-  );
+  private chronoSupportedLocale = [
+    "en",
+    "ja",
+    "fr",
+    "nl",
+    "ru",
+    "pt",
+    "de"
+  ].includes(this.locale.slice(0, 2));
   private errorMessage = "";
 
   componentDidLoad() {

@@ -1,8 +1,18 @@
-import { ParsingContext } from "chrono-node/dist/chrono";
-import { Component } from "chrono-node";
-import { ParsingComponents, ParsingResult } from "chrono-node/dist/results";
+import {
+  Component,
+  ParsingContext,
+  ParsingComponents,
+  ParsingResult
+} from "chrono-node";
 
-export type supportedChronoLocales = "en" | "ja" | "fr" | "nl" | "ru" | "pt";
+export type supportedChronoLocales =
+  | "en"
+  | "ja"
+  | "fr"
+  | "nl"
+  | "ru"
+  | "pt"
+  | "de";
 
 export type ChronoParsedDate = {
   value?: Date;

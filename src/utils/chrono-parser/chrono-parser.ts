@@ -15,7 +15,7 @@ import {
 } from "../utils";
 import { ParsedResult } from "chrono-node";
 
-const supportedChronoLocales = ["en", "fr", "ru", "pt", "ja", "nl"];
+const supportedChronoLocales = ["en", "fr", "ru", "pt", "ja", "nl", "de"];
 
 export const chronoParseDate = async (
   dateString: string,

@@ -1,10 +1,10 @@
 {
-  "name": "inclusive-dates",
+  "name": "inclusive-dates-de",
   "version": "0.1.10",
   "description": "A small, accessible datepicker Web Component with natural language date input.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fymmot/inclusive-dates"
+    "url": "https://github.com/xKelioN/inclusive-dates-de/"
   },
   "keywords": [
     "datepicker",
@@ -15,7 +15,8 @@
     "inclusive design",
     "vanilla-js",
     "natural language",
-    "chrono.js"
+    "chrono.js",
+    "german"
   ],
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
@@ -28,7 +29,7 @@
   "files": [
     "dist/"
   ],
-  "scripts": {
+  "scripts": { 
     "build": "yarn build:stencil && yarn build:docs",
     "build:stencil": "yarn sass && stencil build",
     "build:docs": "rimraf docs-www && copyfiles -u 1 docs/* docs/**/* dist/themes/* docs-www && copyfiles dist/esm/* docs-www && node terser.js",
@@ -66,7 +67,7 @@
     "@a11y/focus-trap": "^1.0.5",
     "@react-aria/live-announcer": "^3.1.2",
     "aria-hidden": "^1.2.2",
-    "chrono-node": "^2.5.0"
+    "chrono-node": "^2.9.0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.7",
