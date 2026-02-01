@@ -63,6 +63,8 @@ export class InclusiveDates {
   @Element() el: HTMLElement;
   // A unique ID for the datepicker. Mandatory for accessibility
   @Prop({ reflect: true }) id: string;
+  // Name attribute for the datepicker input field
+  @Prop({ reflect: true }) name: string = "inclusive-dates";
   // Current value of the datepicker
   @Prop({ mutable: true }) value?: string | string[];
   // Enable or disable range mode
@@ -514,7 +516,16 @@ export class InclusiveDates {
         <div class={this.getClassName("input-container")}>
           <input
             disabled={this.disabledState}
-            id={this.id ? `${this.id}-input` : undefined}
+            id={
+              (this.id?.split("_").length ?? 0) > 1
+                ? this.id.split("_")[1]
+                : this.id
+            }
+            name={
+              (this.name?.split("_").length ?? 0) > 1
+                ? this.name.split("_")[1]
+                : this.name
+            }
             type="text"
             placeholder={this.placeholder}
             class={this.getClassName("input")}
