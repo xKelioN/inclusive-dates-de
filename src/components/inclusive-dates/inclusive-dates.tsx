@@ -535,6 +535,7 @@ export class InclusiveDates {
             onBlur={() => this.formatInput(true, false)}
             aria-describedby={this.errorState ? `${this.id}-error` : undefined}
             aria-invalid={this.errorState}
+            internal-value={this.internalValue}
           />
           {!this.inline && (
             <button
