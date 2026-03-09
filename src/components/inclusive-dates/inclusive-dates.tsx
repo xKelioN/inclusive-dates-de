@@ -535,7 +535,7 @@ export class InclusiveDates {
             onBlur={() => this.formatInput(true, false)}
             aria-describedby={this.errorState ? `${this.id}-error` : undefined}
             aria-invalid={this.errorState}
-            internal-value={this.internalValue}
+            data-internal-value={this.internalValue}
           />
           {!this.inline && (
             <button
@@ -548,6 +548,9 @@ export class InclusiveDates {
               {this.inclusiveDatesLabels.openCalendar}
             </button>
           )}
+          <span id={`${this.id}-internal-value`} hidden={true}>
+            {this.internalValue}
+          </span>
         </div>
         <inclusive-dates-modal
           label={this.inclusiveDatesLabels.calendar}
