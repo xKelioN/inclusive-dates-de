@@ -22,6 +22,7 @@
   <body>
     <main>
       <button onclick="toggleTheme()">Toggle theme</button>
+      <button onclick="setDateToRandom()">Set date to random</button>
       <br />
       <br />
       <br />
@@ -43,6 +44,14 @@
           script.setAttribute("href", "/themes/light.css");
           document.querySelector("html").style.colorScheme = "light";
         }
+      }
+
+      function setDateToRandom() {
+        const datepicker = document.getElementById("datepicker");
+        const randomDate = new Date(
+          Date.now() - Math.floor(Math.random() * 1000000000000)
+        );
+        datepicker.value = randomDate;
       }
 
       const datepicker = document.getElementById("datepicker");

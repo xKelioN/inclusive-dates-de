@@ -148,6 +148,7 @@ export class InclusiveDates {
   private inputRef?: HTMLInputElement;
   private calendarButtonRef?: HTMLButtonElement;
   private pickerRef?: HTMLInclusiveDatesCalendarElement;
+  private pendingExternalFormatting = false;
   private chronoSupportedLocale = [
     "en",
     "ja",
@@ -167,6 +168,13 @@ export class InclusiveDates {
       );
     if (this.value) {
       this.syncExternalValue(this.normalizeInputValue(this.value));
+    }
+  }
+
+  componentDidRender() {
+    if (this.pendingExternalFormatting && this.inputRef) {
+      this.formatInput(true, false);
+      this.pendingExternalFormatting = false;
     }
   }
 
@@ -535,6 +543,7 @@ export class InclusiveDates {
       this.internalValue = undefined;
       if (this.inputRef) this.inputRef.value = "";
       if (this.pickerRef) this.pickerRef.value = undefined;
+      this.pendingExternalFormatting = false;
       return;
     }
     if (Array.isArray(newValue)) {
@@ -553,6 +562,9 @@ export class InclusiveDates {
     this.errorState = false;
     if (this.inputRef) {
       this.formatInput(true, false);
+      this.pendingExternalFormatting = false;
+    } else {
+      this.pendingExternalFormatting = true;
     }
   }
 

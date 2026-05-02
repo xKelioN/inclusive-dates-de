@@ -1,6 +1,6 @@
 {
   "name": "inclusive-dates-de",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "A small, accessible datepicker Web Component with natural language date input.",
   "repository": {
     "type": "git",

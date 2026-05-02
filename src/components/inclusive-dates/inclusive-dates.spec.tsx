@@ -196,6 +196,36 @@ describe("inclusive-dates", () => {
     expect(parsedDate.value).toEqual(`2023-02-02`);
   });
 
+  it("Formats externally set string value after render", async () => {
+    const page = await newSpecPage({
+      components: [InclusiveDates],
+      html: `<inclusive-dates id="test123" locale="en-US"></inclusive-dates>`,
+      language: "en"
+    });
+    const input = getInput(page);
+    const datepicker = getDatePicker(page);
+
+    datepicker.value = "2023-06-08";
+    await page.waitForChanges();
+
+    expect(input.value).toEqual("Thursday, June 8, 2023");
+  });
+
+  it("Formats externally set Date value after render", async () => {
+    const page = await newSpecPage({
+      components: [InclusiveDates],
+      html: `<inclusive-dates id="test123" locale="en-US"></inclusive-dates>`,
+      language: "en"
+    });
+    const input = getInput(page);
+    const datepicker = getDatePicker(page);
+
+    (datepicker as any).value = new Date("2023-06-08");
+    await page.waitForChanges();
+
+    expect(input.value).toEqual("Thursday, June 8, 2023");
+  });
+
   it("Does not parse unsupported locales", async () => {
     const consoleSpy = jest.spyOn(console, "warn");
     const page = await newSpecPage({
