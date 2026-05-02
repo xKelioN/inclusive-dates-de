@@ -25,13 +25,11 @@
       <br />
       <br />
       <br />
+      <inclusive-dates id="datepicker" locale="de-DE"></inclusive-dates>
       <inclusive-dates
-        id="datepicker"
-        locale="en-US"
-        range="true"
-        show-year-stepper="true"
-        max-date="2034-11-02"
-        min-date="1988-12-30"
+        id="datepicker2"
+        locale="de-DE"
+        use-icon-button="true"
       ></inclusive-dates>
     </main>
 
@@ -46,8 +44,11 @@
           document.querySelector("html").style.colorScheme = "light";
         }
       }
-      /*datepicker.disableDate = (date) =>
-        date.getDay() === 6 || date.getDay() === 0;*/
+
+      const datepicker = document.getElementById("datepicker");
+
+      const today = new Date();
+      datepicker.value = today;
     </script>
   </body>
 </html>

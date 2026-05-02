@@ -37,16 +37,6 @@ describe("inclusive-dates", () => {
     expect(input.getAttribute("id")).not.toContain("undefined");
     expect(consoleSpy).not.toHaveBeenCalled();
     consoleSpy.mockClear();
-
-    await newSpecPage({
-      components: [InclusiveDates],
-      html: `<inclusive-dates></inclusive-dates>`,
-      language: "en"
-    });
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'inclusive-dates: The "id" prop is required for accessibility'
-    );
-    consoleSpy.mockClear();
   });
 
   it("Datepicker text input parses single dates", async () => {
@@ -103,27 +93,27 @@ describe("inclusive-dates", () => {
     input.value = "From today to tomorrow";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("Jan 21, 2023 to Jan 22, 2023");
+    expect(input.value).toContain("Jan 21, 2023 bis Jan 22, 2023");
 
     input.value = "June to august 1984";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("Jun 1, 1984 to Aug 1, 1984");
+    expect(input.value).toContain("Jun 1, 1984 bis Aug 1, 1984");
 
     input.value = "2023-09-10 - 2023-09-30";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("Sep 10, 2023 to Sep 30, 2023");
+    expect(input.value).toContain("Sep 10, 2023 bis Sep 30, 2023");
 
     input.value = "9/10/23 to 9/30/23";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("Sep 10, 2023 to Sep 30, 2023");
+    expect(input.value).toContain("Sep 10, 2023 bis Sep 30, 2023");
 
     input.value = "Today to 20 days";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("Jan 21, 2023 to Feb 10, 2023");
+    expect(input.value).toContain("Jan 21, 2023 bis Feb 10, 2023");
 
     input.value = "Friday"; // It works entering just the start date
     input.dispatchEvent(new Event("change"));
@@ -161,7 +151,7 @@ describe("inclusive-dates", () => {
   it("Quick buttons change dates", async () => {
     const page = await newSpecPage({
       components: [InclusiveDates],
-      html: `<inclusive-dates id="test123" locale="en" reference-date="2023-01-21"></inclusive-dates>`,
+      html: `<inclusive-dates id="test123" locale="en" show-quick-buttons="true" reference-date="2023-01-21"></inclusive-dates>`,
       language: "en"
     });
     const input = getInput(page);
@@ -184,10 +174,10 @@ describe("inclusive-dates", () => {
     quickButtons = getQuickButtons(page);
     quickButtons[0].click();
     await page.waitForChanges();
-    expect(input.value).toEqual("Jul 5, 2023 to Jul 10, 2023");
+    expect(input.value).toEqual("Jul 5, 2023 bis Jul 10, 2023");
     quickButtons[1].click();
     await page.waitForChanges();
-    expect(input.value).toEqual("Aug 1, 1999 to Sep 1, 2000");
+    expect(input.value).toEqual("Aug 1, 1999 bis Sep 1, 2000");
   });
 
   it("External date parsing method works", async () => {
@@ -250,7 +240,7 @@ describe("inclusive-dates", () => {
     input.value = "2023-02-02 till 2023-02-04";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("2 feb. 2023 to 4 feb. 2023");
+    expect(input.value).toContain("2 feb. 2023 bis 4 feb. 2023");
   });
 
   it("Input formatting works for single dates", async () => {
@@ -300,13 +290,13 @@ describe("inclusive-dates", () => {
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
     // Valid dates are formatted
-    expect(input.value).toContain("Jun 8, 2023 to Jun 12, 2023");
+    expect(input.value).toContain("Jun 8, 2023 bis Jun 12, 2023");
     // Valid dates are shown as ISO-format on focus
     input.focus();
-    expect(input.value).toContain("2023-06-08 to 2023-06-12");
+    expect(input.value).toContain("2023-06-08 bis 2023-06-12");
     // Valid dates are reformatted on blur
     input.blur();
-    expect(input.value).toContain("Jun 8, 2023 to Jun 12, 2023");
+    expect(input.value).toContain("Jun 8, 2023 bis Jun 12, 2023");
 
     // Invalid dates are not formatted
     input.value = "sdfsdfdsf";
@@ -320,6 +310,6 @@ describe("inclusive-dates", () => {
     input.value = "June 8 - 12 2023";
     input.dispatchEvent(new Event("change"));
     await page.waitForChanges();
-    expect(input.value).toContain("2023-06-08 to 2023-06-12");
+    expect(input.value).toContain("2023-06-08 bis 2023-06-12");
   });
 });

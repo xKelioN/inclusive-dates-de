@@ -7,3 +7,17 @@
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
 }
+
+.inclusive-dates__calendar-button--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25em;
+  aspect-ratio: 1;
+  line-height: 1;
+}
+
+.inclusive-dates__calendar-button--icon svg {
+  display: block;
+  font-size: 1.25em;
+}

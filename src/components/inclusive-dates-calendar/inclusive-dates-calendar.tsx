@@ -52,19 +52,19 @@ export type InclusiveDatesCalendarLabels = {
 };
 
 const defaultLabels: InclusiveDatesCalendarLabels = {
-  clearButton: "Clear value",
-  monthSelect: "Select month",
-  nextMonthButton: "Next month",
-  nextYearButton: "Next year",
-  picker: "Choose date",
-  previousMonthButton: "Previous month",
-  previousYearButton: "Previous year",
-  todayButton: "Show today",
-  yearSelect: "Select year",
-  keyboardHint: "Keyboard commands",
-  selected: "Selected date",
-  chooseAsStartDate: "choose as start date",
-  chooseAsEndDate: "choose as end date"
+  clearButton: "Auswahl löschen",
+  monthSelect: "Monat auswählen",
+  nextMonthButton: "Nächster Monat",
+  nextYearButton: "Nächstes Jahr",
+  picker: "Datum auswählen",
+  previousMonthButton: "Vorheriger Monat",
+  previousYearButton: "Vorheriges Jahr",
+  todayButton: "Heute anzeigen",
+  yearSelect: "Jahr auswählen",
+  keyboardHint: "Tastaturbefehle",
+  selected: "Ausgewähltes Datum",
+  chooseAsStartDate: "als Startdatum wählen",
+  chooseAsEndDate: "als Enddatum wählen"
 };
 
 export interface MonthChangedEventDetails {

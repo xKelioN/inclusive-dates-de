@@ -194,7 +194,7 @@ describe("inclusive-dates-calendar", () => {
     let currentDate = page.root.querySelector<HTMLTableCellElement>(
       ".inclusive-dates-calendar__date"
     );
-    expect(currentDate.innerText).toContain("choose as start date");
+    expect(currentDate.innerText).toContain("als Startdatum wählen");
 
     currentDate.click();
 
@@ -212,7 +212,7 @@ describe("inclusive-dates-calendar", () => {
       ".inclusive-dates-calendar__date--current"
     );
 
-    expect(currentDate.innerText).toContain("Selected date");
+    expect(currentDate.innerText).toContain("Ausgewähltes Datum");
     expect(spy.mock.calls[1][0].detail).toEqual(["2021-12-26", "2021-12-27"]);
 
     triggerKeyDown(page, "ArrowDown");
@@ -223,7 +223,7 @@ describe("inclusive-dates-calendar", () => {
       ".inclusive-dates-calendar__date--current"
     );
 
-    expect(currentDate.innerText).toContain("selected date");
+    expect(currentDate.innerText).toContain("ausgewähltes Datum");
   });*/
 
   it("highlights current date with keyboard selection", async () => {

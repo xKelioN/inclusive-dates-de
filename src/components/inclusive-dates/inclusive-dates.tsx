@@ -41,16 +41,16 @@ export interface InclusiveDatesLabels {
 }
 
 const defaultLabels: InclusiveDatesLabels = {
-  selected: "selected",
-  openCalendar: "Open calendar",
-  calendar: "calendar",
-  invalidDateError: "We could not find a matching date",
-  minDateError: `Please fill in a date after `,
-  maxDateError: `Please fill in a date before `,
-  rangeOutOfBoundsError: `Please enter a valid range of dates`,
-  disabledDateError: `Please choose an available date`,
-  to: "to",
-  startDate: "Start date"
+  selected: "ausgewählt",
+  openCalendar: "Kalender öffnen",
+  calendar: "Kalender",
+  invalidDateError: "Kein passendes Datum gefunden",
+  minDateError: `Bitte wähle ein Datum nach dem `,
+  maxDateError: `Bitte wähle ein Datum vor dem `,
+  rangeOutOfBoundsError: `Bitte einen gültigen Zeitraum eingeben`,
+  disabledDateError: `Bitte wählen Sie ein verfügbares Datum`,
+  to: "bis",
+  startDate: "Startdatum"
 };
 
 @Component({
@@ -60,13 +60,13 @@ const defaultLabels: InclusiveDatesLabels = {
   tag: "inclusive-dates"
 })
 export class InclusiveDates {
-  @Element() el: HTMLElement;
+  @Element() el!: HTMLElement;
   // A unique ID for the datepicker. Mandatory for accessibility
-  @Prop({ reflect: true }) id: string;
+  @Prop({ reflect: true }) id!: string;
   // Name attribute for the datepicker input field
   @Prop({ reflect: true }) name: string = "inclusive-dates";
-  // Current value of the datepicker
-  @Prop({ mutable: true }) value?: string | string[];
+  // Current value of the datepicker (ISO string, ISO string[], Date, or Date[])
+  @Prop({ mutable: true }) value?: string | string[] | Date | Date[];
   // Enable or disable range mode
   @Prop() range?: boolean = false;
   // A label for the text field
@@ -117,7 +117,7 @@ export class InclusiveDates {
   @Prop({ attribute: "input-should-format" }) formatInputOnAccept?: boolean =
     true;
   // Show or hide the keyboard hints
-  @Prop() showKeyboardHint?: boolean = true;
+  @Prop() showKeyboardHint?: boolean = false;
   // Function to disable individual dates
   @Prop() disableDate?: HTMLInclusiveDatesCalendarElement["disableDate"] = () =>
     false;
@@ -132,15 +132,17 @@ export class InclusiveDates {
   // Text content for the today button in the calendar
   @Prop() todayButtonContent?: string;
   // Show or hide the quick buttons
-  @Prop() showQuickButtons?: boolean = true;
+  @Prop() showQuickButtons?: boolean = false;
+  // Use an icon button instead of a text button to open the calendar
+  @Prop() useIconButton?: boolean = false;
 
-  @State() internalValue: string | string[];
-  @State() errorState: boolean = this.hasError;
-  @State() disabledState: boolean = this.disabled;
+  @State() internalValue: string | string[] | undefined;
+  @State() errorState: boolean = !!this.hasError;
+  @State() disabledState: boolean = !!this.disabled;
 
-  @Event() selectDate: EventEmitter<string | string[] | undefined>;
+  @Event() selectDate!: EventEmitter<string | string[] | undefined>;
 
-  @Event() componentReady: EventEmitter<void>;
+  @Event() componentReady!: EventEmitter<void>;
 
   private modalRef?: HTMLInclusiveDatesModalElement;
   private inputRef?: HTMLInputElement;
@@ -154,20 +156,18 @@ export class InclusiveDates {
     "ru",
     "pt",
     "de"
-  ].includes(this.locale.slice(0, 2));
+  ].includes((this.locale ?? "en-US").slice(0, 2));
   private errorMessage = "";
 
   componentDidLoad() {
     this.componentReady.emit();
-    if (!this.id) {
-      console.error(
-        'inclusive-dates: The "id" prop is required for accessibility'
-      );
-    }
     if (!this.chronoSupportedLocale)
       console.warn(
         `inclusive-dates: The chosen locale "${this.locale}" is not supported by Chrono.js. Date parsing has been disabled`
       );
+    if (this.value) {
+      this.syncExternalValue(this.normalizeInputValue(this.value));
+    }
   }
 
   // External method to parse text string using Chrono.js and (optionally) set as value.
@@ -175,13 +175,15 @@ export class InclusiveDates {
   async parseDate(
     text: string,
     shouldSetValue = true,
-    chronoOptions: ChronoOptions = undefined
+    chronoOptions?: ChronoOptions
   ): Promise<ChronoParsedDateString> {
     const parsedDate = await chronoParseDate(text, {
-      locale: this.locale.slice(0, 2),
+      locale: (this.locale ?? "en-US").slice(0, 2),
       minDate: this.minDate,
       maxDate: this.minDate,
-      referenceDate: removeTimezoneOffset(new Date(this.referenceDate)),
+      referenceDate: removeTimezoneOffset(
+        new Date(this.referenceDate ?? getISODateString(new Date()))
+      ),
       ...chronoOptions
     });
     if (shouldSetValue) {
@@ -205,7 +207,7 @@ export class InclusiveDates {
       new Date(value[0]) instanceof Date &&
       new Date(value[1]) instanceof Date
     )
-      return this.range;
+      return !!this.range;
   }
 
   private updateValue(newValue: Date | Date[]) {
@@ -217,7 +219,7 @@ export class InclusiveDates {
     else {
       this.internalValue = getISODateString(newValue);
     }
-    this.pickerRef.value = newValue;
+    if (this.pickerRef) this.pickerRef.value = newValue;
     this.errorState = false;
     this.selectDate.emit(this.internalValue);
     this.announceDateChange(this.internalValue);
@@ -225,10 +227,13 @@ export class InclusiveDates {
 
   private handleCalendarButtonClick = async () => {
     await customElements.whenDefined("inclusive-dates-modal");
-    await this.modalRef.setTriggerElement(this.calendarButtonRef);
-    if ((await this.modalRef.getState()) === false) await this.modalRef?.open();
-    else if ((await this.modalRef.getState()) === true)
-      await this.modalRef?.close();
+    if (this.modalRef && this.calendarButtonRef) {
+      await this.modalRef.setTriggerElement(this.calendarButtonRef);
+      if ((await this.modalRef.getState()) === false)
+        await this.modalRef.open();
+      else if ((await this.modalRef.getState()) === true)
+        await this.modalRef.close();
+    }
   };
 
   private handleQuickButtonClick = async (event: MouseEvent) => {
@@ -236,10 +241,12 @@ export class InclusiveDates {
     const parsedDate = await parser(
       (event.target as HTMLButtonElement).innerText,
       {
-        locale: this.locale.slice(0, 2),
+        locale: (this.locale ?? "en-US").slice(0, 2),
         minDate: this.minDate,
         maxDate: this.maxDate,
-        referenceDate: removeTimezoneOffset(new Date(this.referenceDate))
+        referenceDate: removeTimezoneOffset(
+          new Date(this.referenceDate ?? getISODateString(new Date()))
+        )
       }
     );
     if (parsedDate) {
@@ -252,7 +259,7 @@ export class InclusiveDates {
       } else {
         // Date range
         const newValue = [];
-        if (parsedDate.value.start instanceof Date) {
+        if (parsedDate.value && parsedDate.value.start instanceof Date) {
           newValue.push(parsedDate.value.start);
         }
         if (parsedDate.value && parsedDate.value.end instanceof Date)
@@ -274,19 +281,22 @@ export class InclusiveDates {
       "assertive"
     );
   };
-  private handleChange = async (event) => {
+  private handleChange = async (event: Event) => {
+    const inputValue = (event.target as HTMLInputElement).value;
     if (this.range) {
       this.errorState = false;
-      if (event.target.value.length === 0) {
+      if (inputValue.length === 0) {
         this.internalValue = "";
-        this.pickerRef.value = null;
+        if (this.pickerRef) this.pickerRef.value = undefined;
         return this.selectDate.emit(this.internalValue);
       }
-      const parsedRange = await chronoParseRange(event.target.value, {
-        locale: this.locale.slice(0, 2),
+      const parsedRange = await chronoParseRange(inputValue, {
+        locale: (this.locale ?? "en-US").slice(0, 2),
         minDate: this.minDate,
         maxDate: this.maxDate,
-        referenceDate: removeTimezoneOffset(new Date(this.referenceDate))
+        referenceDate: removeTimezoneOffset(
+          new Date(this.referenceDate ?? getISODateString(new Date()))
+        )
       });
       const newValue = [];
       if (parsedRange.value && parsedRange.value.start instanceof Date)
@@ -298,64 +308,71 @@ export class InclusiveDates {
 
       if (newValue.length === 0) {
         this.errorState = true;
-        this.errorMessage = {
-          invalid: this.inclusiveDatesLabels.invalidDateError,
-          rangeOutOfBounds: this.inclusiveDatesLabels.rangeOutOfBoundsError
-        }[parsedRange.reason];
+        this.errorMessage =
+          (
+            {
+              invalid: this.inclusiveDatesLabels?.invalidDateError ?? "",
+              rangeOutOfBounds:
+                this.inclusiveDatesLabels?.rangeOutOfBoundsError ?? "",
+              minDate: this.inclusiveDatesLabels?.minDateError ?? "",
+              maxDate: this.inclusiveDatesLabels?.maxDateError ?? ""
+            } as Record<string, string>
+          )[parsedRange.reason ?? ""] ?? "";
       }
     } else {
       this.errorState = false;
-      if (event.target.value.length === 0) {
+      if (inputValue.length === 0) {
         this.internalValue = "";
-        this.pickerRef.value = null;
+        if (this.pickerRef) this.pickerRef.value = undefined;
         return this.selectDate.emit(this.internalValue);
       }
-      const parsedDate = await chronoParseDate(event.target.value, {
-        locale: this.locale.slice(0, 2),
+      const parsedDate = await chronoParseDate(inputValue, {
+        locale: (this.locale ?? "en-US").slice(0, 2),
         minDate: this.minDate,
         maxDate: this.maxDate,
-        referenceDate: removeTimezoneOffset(new Date(this.referenceDate))
+        referenceDate: removeTimezoneOffset(
+          new Date(this.referenceDate ?? getISODateString(new Date()))
+        )
       });
       if (parsedDate && parsedDate.value instanceof Date) {
-        if (this.disableDate(parsedDate.value)) {
+        if (this.disableDate?.(parsedDate.value)) {
           this.errorState = true;
-          this.errorMessage = this.inclusiveDatesLabels.disabledDateError;
+          this.errorMessage =
+            this.inclusiveDatesLabels?.disabledDateError ?? "";
         } else {
           this.updateValue(parsedDate.value);
           this.formatInput(true, false);
         }
       } else if (parsedDate) {
         this.errorState = true;
-        this.internalValue = null;
-        let maxDate = undefined;
-        let minDate = undefined;
+        this.internalValue = undefined;
+        let maxDate: Date | undefined;
+        let minDate: Date | undefined;
         if (this.maxDate) {
-          maxDate = this.maxDate
-            ? removeTimezoneOffset(new Date(this.maxDate))
-            : undefined;
+          maxDate = removeTimezoneOffset(new Date(this.maxDate));
           maxDate.setDate(maxDate.getDate() + 1);
         }
         if (this.minDate) {
-          minDate = this.minDate
-            ? removeTimezoneOffset(new Date(this.minDate))
-            : undefined;
+          minDate = removeTimezoneOffset(new Date(this.minDate));
           minDate.setDate(minDate.getDate() - 1);
         }
-        this.errorMessage = parsedDate.reason;
-        this.errorMessage = {
-          // TODO: Add locale date formatting to these messages
-          minDate: minDate
-            ? `${this.inclusiveDatesLabels.minDateError} ${getISODateString(
-                minDate
-              )}`
-            : "",
-          maxDate: maxDate
-            ? `${this.inclusiveDatesLabels.maxDateError} ${getISODateString(
-                maxDate
-              )}`
-            : "",
-          invalid: this.inclusiveDatesLabels.invalidDateError
-        }[parsedDate.reason];
+        this.errorMessage =
+          (
+            {
+              // TODO: Add locale date formatting to these messages
+              minDate: minDate
+                ? `${
+                    this.inclusiveDatesLabels?.minDateError ?? ""
+                  } ${getISODateString(minDate)}`
+                : "",
+              maxDate: maxDate
+                ? `${
+                    this.inclusiveDatesLabels?.maxDateError ?? ""
+                  } ${getISODateString(maxDate)}`
+                : "",
+              invalid: this.inclusiveDatesLabels?.invalidDateError ?? ""
+            } as Record<string, string>
+          )[parsedDate.reason ?? ""] ?? "";
       }
     }
   };
@@ -364,9 +381,9 @@ export class InclusiveDates {
     if (this.formatInputOnAccept === false || enabled === false) {
       if (this.internalValue) {
         if (this.internalValue.length === 0) return;
-        this.inputRef.value = this.internalValue
+        this.inputRef!.value = this.internalValue
           .toString()
-          .replace(",", ` ${this.inclusiveDatesLabels.to} `);
+          .replace(",", ` ${this.inclusiveDatesLabels?.to ?? ""} `);
       }
       return;
     }
@@ -380,27 +397,27 @@ export class InclusiveDates {
         let output = "";
         this.internalValue.forEach((value, index) => {
           return (output += `${
-            index === 1 ? ` ${this.inclusiveDatesLabels.to} ` : ""
+            index === 1 ? ` ${this.inclusiveDatesLabels?.to ?? ""} ` : ""
           }${Intl.DateTimeFormat(this.locale, {
             day: "numeric",
             month: "short",
             year: "numeric"
           }).format(
             removeTimezoneOffset(
-              new Date(useInputValue ? this.inputRef.value : value)
+              new Date(useInputValue ? this.inputRef!.value : value)
             )
           )}`);
         });
-        this.inputRef.value = output;
+        this.inputRef!.value = output;
       } else {
-        this.inputRef.value = Intl.DateTimeFormat(this.locale, {
+        this.inputRef!.value = Intl.DateTimeFormat(this.locale, {
           weekday: "long",
           day: "numeric",
           month: "long",
           year: "numeric"
         }).format(
           removeTimezoneOffset(
-            new Date(useInputValue ? this.inputRef.value : this.internalValue)
+            new Date(useInputValue ? this.inputRef!.value : this.internalValue)
           )
         );
       }
@@ -409,12 +426,12 @@ export class InclusiveDates {
       this.internalValue.length > 0 &&
       this.errorState === false
     )
-      this.inputRef.value = this.internalValue.toString();
+      this.inputRef!.value = this.internalValue.toString();
   }
 
   private handlePickerSelection(newValue: string | string[]) {
     if (this.isRangeValue(newValue)) {
-      if (newValue.length === 2) this.modalRef.close();
+      if (newValue.length === 2) this.modalRef?.close();
       this.internalValue = newValue;
       this.errorState = false;
       if (document.activeElement !== this.inputRef) {
@@ -422,8 +439,8 @@ export class InclusiveDates {
       }
       this.announceDateChange(this.internalValue);
     } else {
-      this.modalRef.close();
-      this.inputRef.value = newValue as string;
+      this.modalRef?.close();
+      this.inputRef!.value = newValue as string;
       this.internalValue = newValue as string;
       this.errorState = false;
       if (document.activeElement !== this.inputRef) {
@@ -437,12 +454,12 @@ export class InclusiveDates {
     let content = "";
     if (Array.isArray(newValue)) {
       if (newValue.length === 1) {
-        content += `${this.inclusiveDatesLabels.startDate} `;
+        content += `${this.inclusiveDatesLabels?.startDate ?? ""} `;
       }
       newValue.forEach(
         (value, index) =>
           (content += `${
-            index === 1 ? ` ${this.inclusiveDatesLabels.to} ` : ""
+            index === 1 ? ` ${this.inclusiveDatesLabels?.to ?? ""} ` : ""
           }${Intl.DateTimeFormat(this.locale, {
             weekday: "long",
             day: "numeric",
@@ -458,49 +475,84 @@ export class InclusiveDates {
         year: "numeric"
       }).format(removeTimezoneOffset(new Date(newValue)));
     if (content.length === 0) return;
-    content += ` ${this.inclusiveDatesLabels.selected}`;
+    content += ` ${this.inclusiveDatesLabels?.selected ?? ""}`;
     const contentNoCommas = content.replace(/\,/g, "");
     announce(contentNoCommas, "polite");
   }
 
   @Watch("hasError")
-  watchHasError(newValue) {
+  watchHasError(newValue: boolean) {
     this.hasError = newValue;
   }
   @Watch("locale")
-  watchLocale(newValue) {
+  watchLocale(newValue: string) {
     this.locale = newValue;
   }
 
   @Watch("label")
-  watchLabel(newValue) {
+  watchLabel(newValue: string) {
     this.label = newValue;
   }
 
   @Watch("disabled")
-  watchDisabled(newValue) {
+  watchDisabled(newValue: boolean) {
     this.disabledState = newValue;
     this.disabled = newValue;
   }
   @Watch("range")
-  watchRange(newValue) {
+  watchRange(newValue: boolean) {
     this.range = newValue;
   }
 
   @Watch("minDate")
-  watchMinDate(newValue) {
+  watchMinDate(newValue: string) {
     this.minDate = newValue;
   }
 
   @Watch("maxDate")
-  watchMaxDate(newValue) {
+  watchMaxDate(newValue: string) {
     this.maxDate = newValue;
   }
 
   @Watch("value")
-  watchValue() {
-    if (Boolean(this.value) && !this.isRangeValue(this.value)) {
-      this.internalValue = this.value as string;
+  watchValue(newValue: string | string[] | Date | Date[]) {
+    this.syncExternalValue(this.normalizeInputValue(newValue));
+  }
+
+  private normalizeInputValue(
+    value: string | string[] | Date | Date[]
+  ): string | string[] {
+    if (Array.isArray(value)) {
+      return (value as Array<string | Date>).map((v) =>
+        v instanceof Date ? getISODateString(v) : v
+      );
+    }
+    return value instanceof Date ? getISODateString(value) : value;
+  }
+
+  private syncExternalValue(newValue: string | string[]) {
+    if (!newValue || (Array.isArray(newValue) && newValue.length === 0)) {
+      this.internalValue = undefined;
+      if (this.inputRef) this.inputRef.value = "";
+      if (this.pickerRef) this.pickerRef.value = undefined;
+      return;
+    }
+    if (Array.isArray(newValue)) {
+      this.internalValue = newValue;
+      if (this.pickerRef) {
+        this.pickerRef.value = newValue.map((v) =>
+          removeTimezoneOffset(new Date(v))
+        );
+      }
+    } else {
+      this.internalValue = newValue;
+      if (this.pickerRef) {
+        this.pickerRef.value = removeTimezoneOffset(new Date(newValue));
+      }
+    }
+    this.errorState = false;
+    if (this.inputRef) {
+      this.formatInput(true, false);
     }
   }
 
@@ -521,11 +573,6 @@ export class InclusiveDates {
                 ? this.id.split("_")[1]
                 : this.id
             }
-            name={
-              (this.name?.split("_").length ?? 0) > 1
-                ? this.name.split("_")[1]
-                : this.name
-            }
             type="text"
             placeholder={this.placeholder}
             class={this.getClassName("input")}
@@ -537,15 +584,49 @@ export class InclusiveDates {
             aria-invalid={this.errorState}
             data-internal-value={this.internalValue}
           />
+          {Array.isArray(this.internalValue) ? (
+            this.internalValue.map((v) => (
+              <input type="hidden" name={this.name} value={v} />
+            ))
+          ) : (
+            <input
+              type="hidden"
+              name={this.name}
+              value={this.internalValue ?? ""}
+            />
+          )}
           {!this.inline && (
             <button
               type="button"
               ref={(r) => (this.calendarButtonRef = r)}
               onClick={this.handleCalendarButtonClick}
-              class={this.getClassName("calendar-button")}
+              class={`${this.getClassName("calendar-button")}${
+                this.useIconButton
+                  ? ` ${this.getClassName("calendar-button--icon")}`
+                  : ""
+              }`}
               disabled={this.disabledState}
+              aria-label={
+                this.useIconButton
+                  ? this.inclusiveDatesLabels?.openCalendar ?? "Open calendar"
+                  : undefined
+              }
             >
-              {this.inclusiveDatesLabels.openCalendar}
+              {this.useIconButton ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                  width="1em"
+                  height="1em"
+                  fill="currentColor"
+                >
+                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                </svg>
+              ) : (
+                this.inclusiveDatesLabels?.openCalendar
+              )}
             </button>
           )}
           <span id={`${this.id}-internal-value`} hidden={true}>
@@ -553,13 +634,13 @@ export class InclusiveDates {
           </span>
         </div>
         <inclusive-dates-modal
-          label={this.inclusiveDatesLabels.calendar}
+          label={this.inclusiveDatesLabels?.calendar ?? ""}
           ref={(el) => (this.modalRef = el)}
           onOpened={() => {
-            this.pickerRef.modalIsOpen = true;
+            if (this.pickerRef) this.pickerRef.modalIsOpen = true;
           }}
           onClosed={() => {
-            this.pickerRef.modalIsOpen = false;
+            if (this.pickerRef) this.pickerRef.modalIsOpen = false;
           }}
           inline={this.inline}
         >
@@ -593,14 +674,14 @@ export class InclusiveDates {
           />
         </inclusive-dates-modal>
         {this.showQuickButtons &&
-          this.quickButtons?.length > 0 &&
+          (this.quickButtons?.length ?? 0) > 0 &&
           this.chronoSupportedLocale && (
             <div
               class={this.getClassName("quick-group")}
               role="group"
               aria-label="Quick selection"
             >
-              {this.quickButtons.map((buttonText) => {
+              {this.quickButtons!.map((buttonText) => {
                 return (
                   <button
                     class={this.getClassName("quick-button")}
