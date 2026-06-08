@@ -598,7 +598,15 @@ export class InclusiveDates {
           />
           {Array.isArray(this.internalValue) ? (
             this.internalValue.map((v) => (
-              <input type="hidden" name={this.name} value={v} />
+              <input
+                type="hidden"
+                name={
+                  (this.name?.split("_").length ?? 0) > 1
+                    ? this.name.split("_")[1]
+                    : this.name
+                }
+                value={v}
+              />
             ))
           ) : (
             <input
